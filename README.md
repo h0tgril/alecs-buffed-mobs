@@ -1,6 +1,6 @@
 # AlecsOpMobs
 
-A Bukkit/Spigot plugin that significantly buffs various mobs and player mechanics to make Minecraft more challenging and interesting. Video: https://youtu.be/DTBZKJhPKgA?si=cibeox9m7guzayYe
+A Bukkit/Spigot plugin that significantly buffs various mobs and player mechanics to make Minecraft more challenging and interesting. Video: https://youtu.be/ePbAFowJuqc
 
 ## Features
 
@@ -116,4 +116,6 @@ The project includes a portable build script (`build-plugin.sh`) designed to wor
     ```
 4.  **Output:**
     *   The compiled plugin will be located at `dist/AlecsOpMobs.jar`.
+
+In case you've noticed all this code is AI slop... I do know how to code, and did proofread and playtest everything here, was just too lazy to keep looking up the right imports and stuff.
 
