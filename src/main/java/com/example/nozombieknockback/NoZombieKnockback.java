@@ -1,8 +1,5 @@
 package com.example.nozombieknockback;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.Location;
@@ -22,11 +19,9 @@ import org.bukkit.event.entity.EntityTameEvent;
 import org.bukkit.event.entity.ExplosionPrimeEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
-import org.bukkit.event.vehicle.VehicleCreateEvent;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
@@ -38,32 +33,14 @@ import org.bukkit.util.Vector;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Writer;
-import java.lang.reflect.Type;
-import java.nio.file.Files;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 
 public class NoZombieKnockback extends JavaPlugin implements Listener {
 
-    private static final Set<String> allowedWorlds = new HashSet<>();
-    private Set<String> ipWhitelist = new HashSet<>();
-    private String kickMessage;
-    private boolean whitelistEnabled;
-    private final Gson gson = new Gson();
     private final Map<java.util.UUID, Integer> witherArrowCounts = new HashMap<>();
     private final Set<java.util.UUID> witherReleasedArrows = new HashSet<>();
     private final Map<java.util.UUID, BukkitTask> witherMusicTasks = new HashMap<>();
@@ -71,21 +48,11 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        reloadPluginConfig();
-        loadIpWhitelist();
-
-        getLogger().info("IP Whitelist is " + (whitelistEnabled ? "ENABLED" : "DISABLED") + ".");
-
-        allowedWorlds.add("world");
-        allowedWorlds.add("world_nether");
-        allowedWorlds.add("world_the_end");
         getServer().getPluginManager().registerEvents(this, this);
 
         // Ender dragon regenerates 1 heart (2 HP) every 10 seconds (200 ticks)
         getServer().getScheduler().runTaskTimer(this, () -> {
-            for (String worldName : allowedWorlds) {
-                World world = getServer().getWorld(worldName);
-                if (world == null) continue;
+            for (World world : getServer().getWorlds()) {
                 for (EnderDragon dragon : world.getEntitiesByClass(EnderDragon.class)) {
                     double maxHealth = dragon.getAttribute(Attribute.valueOf("GENERIC_MAX_HEALTH")).getValue();
                     double currentHealth = dragon.getHealth();
@@ -136,107 +103,6 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
 
     }
 
-    private void reloadPluginConfig() {
-        reloadConfig();
-        whitelistEnabled = getConfig().getBoolean("whitelist.enabled", true);
-        kickMessage = getConfig().getString("whitelist.kick-message", "You are not on the whitelist.");
-    }
-
-    private void loadIpWhitelist() {
-        File whitelistFile = new File(getDataFolder(), "ip-whitelist.json");
-        if (!whitelistFile.exists()) {
-            saveResource("ip-whitelist.json", false);
-        }
-
-        try (FileReader reader = new FileReader(whitelistFile)) {
-            Type type = new TypeToken<Map<String, List<String>>>() {}.getType();
-            Map<String, List<String>> data = gson.fromJson(reader, type);
-            if (data != null && data.containsKey("allowed_ips")) {
-                ipWhitelist = new HashSet<>(data.get("allowed_ips"));
-                getLogger().info("Successfully loaded IP whitelist.");
-            }
-        } catch (IOException e) {
-            getLogger().log(Level.SEVERE, "Could not load ip-whitelist.json", e);
-        }
-    }
-
-    private void saveIpWhitelist() {
-        File whitelistFile = new File(getDataFolder(), "ip-whitelist.json");
-        try (Writer writer = new FileWriter(whitelistFile)) {
-            Map<String, Set<String>> data = new HashMap<>();
-            data.put("allowed_ips", ipWhitelist);
-            gson.toJson(data, writer);
-            getLogger().info("Successfully saved IP whitelist.");
-        } catch (IOException e) {
-            getLogger().log(Level.SEVERE, "Could not save ip-whitelist.json", e);
-        }
-    }
-
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (command.getName().equalsIgnoreCase("nzk")) {
-            if (args.length == 0) {
-                sender.sendMessage("Usage: /nzk <reload|whitelist|version|giant>");
-                return true;
-            }
-
-            if (args[0].equalsIgnoreCase("reload")) {
-                reloadPluginConfig();
-                loadIpWhitelist();
-                String status = "IP whitelist reloaded. Whitelist is " + (whitelistEnabled ? "ENABLED" : "DISABLED") + ".";
-                getLogger().info(status);
-                sender.sendMessage(status);
-                return true;
-            }
-
-            if (args[0].equalsIgnoreCase("version")) {
-                sender.sendMessage("NoZombieKnockback version: " + getDescription().getVersion());
-                return true;
-            }
-
-            if (args[0].equalsIgnoreCase("giant")) {
-                if (!(sender instanceof Player)) {
-                    sender.sendMessage("This command can only be used by players.");
-                    return true;
-                }
-                Player player = (Player) sender;
-                if (args.length < 2) {
-                    sender.sendMessage("Usage: /nzk giant <zombie|creeper>");
-                    return true;
-                }
-                if (args[1].equalsIgnoreCase("zombie")) {
-                    Zombie zombie = (Zombie) player.getWorld().spawnEntity(player.getLocation(), EntityType.ZOMBIE);
-                    makeGiantZombie(zombie);
-                    sender.sendMessage("Spawned a giant zombie!");
-                    return true;
-                } else if (args[1].equalsIgnoreCase("creeper")) {
-                    Creeper creeper = (Creeper) player.getWorld().spawnEntity(player.getLocation(), EntityType.CREEPER);
-                    makeGiantCreeper(creeper);
-                    sender.sendMessage("Spawned a giant creeper!");
-                    return true;
-                }
-                sender.sendMessage("Usage: /nzk giant <zombie|creeper>");
-                return true;
-            }
-
-            if (args[0].equalsIgnoreCase("whitelist")) {
-                if (args.length < 2) {
-                    sender.sendMessage("Usage: /nzk whitelist <ip>");
-                    return true;
-                }
-                String ip = args[1];
-                ipWhitelist.add(ip);
-                saveIpWhitelist();
-                sender.sendMessage("Added " + ip + " to the whitelist.");
-                return true;
-            }
-
-            sender.sendMessage("Unknown subcommand. Usage: /nzk <reload|whitelist|version|giant>");
-            return true;
-        }
-        return false;
-    }
-
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
@@ -255,22 +121,7 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onPlayerLogin(PlayerLoginEvent event) {
-        if (!whitelistEnabled) {
-            return;
-        }
-        String playerIp = event.getAddress().getHostAddress();
-        if (!ipWhitelist.contains(playerIp)) {
-            event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, kickMessage);
-            getLogger().info("Blocked connection from non-whitelisted IP: " + playerIp);
-        }
-    }
-
-    @EventHandler
     public void onBlockFade(BlockFadeEvent event) {
-        if (!allowedWorlds.contains(event.getBlock().getWorld().getName())) {
-            return;
-        }
         if (event.getBlock().getType() == Material.FIRE) {
             if (Math.random() <= 0.9) {
                 event.setCancelled(true);
@@ -280,9 +131,6 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onCreatureSpawn(CreatureSpawnEvent event) {
-        if (!allowedWorlds.contains(event.getEntity().getWorld().getName())) {
-            return;
-        }
         LivingEntity entity = event.getEntity();
         EntityType type = event.getEntityType();
 
@@ -429,9 +277,6 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onEntityTarget(EntityTargetEvent event) {
-        if (!allowedWorlds.contains(event.getEntity().getWorld().getName())) {
-            return;
-        }
         if (event.getEntity() instanceof Wither && (event.getTarget() instanceof EnderDragon || event.getTarget() instanceof Bee)) {
             event.setCancelled(true);
         }
@@ -442,9 +287,6 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onEntityTame(EntityTameEvent event) {
-        if (!allowedWorlds.contains(event.getEntity().getWorld().getName())) {
-            return;
-        }
         if (event.getEntity() instanceof Wolf) {
             Wolf wolf = (Wolf) event.getEntity();
             wolf.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, Integer.MAX_VALUE, 0));
@@ -453,18 +295,16 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onProjectileLaunch(ProjectileLaunchEvent event) {
-        if (!allowedWorlds.contains(event.getEntity().getWorld().getName())) {
-            return;
+    public void onEntityShootBow(org.bukkit.event.entity.EntityShootBowEvent event) {
+        if (event.getEntity() instanceof Skeleton || event.getEntity() instanceof Stray) {
+            Entity projectile = event.getProjectile();
+            projectile.setVelocity(projectile.getVelocity().multiply(2.0));
         }
-        if (event.getEntity() instanceof Arrow) {
-            Arrow arrow = (Arrow) event.getEntity();
-            if (arrow.getShooter() instanceof Skeleton) {
-                Vector currentVelocity = arrow.getVelocity();
-                Vector newVelocity = currentVelocity.normalize().multiply(2);
-                arrow.setVelocity(newVelocity);
-            }
-        } else if (event.getEntity() instanceof Fireball) {
+    }
+
+    @EventHandler
+    public void onProjectileLaunch(ProjectileLaunchEvent event) {
+        if (event.getEntity() instanceof Fireball) {
             Fireball fireball = (Fireball) event.getEntity();
             if (fireball.getShooter() instanceof Ghast) {
                 fireball.setYield(fireball.getYield() * 4);
@@ -474,9 +314,6 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onProjectileHit(ProjectileHitEvent event) {
-        if (!allowedWorlds.contains(event.getEntity().getWorld().getName())) {
-            return;
-        }
         if (event.getEntity() instanceof WitherSkull) {
             WitherSkull skull = (WitherSkull) event.getEntity();
             Location loc = skull.getLocation();
@@ -657,10 +494,6 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-        if (!allowedWorlds.contains(event.getEntity().getWorld().getName())) {
-            return;
-        }
-
         if (event.getEntity() instanceof Wither) {
             Wither wither = (Wither) event.getEntity();
             
@@ -830,10 +663,6 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onEnderDragonDamage(EntityDamageEvent event) {
-        if (!allowedWorlds.contains(event.getEntity().getWorld().getName())) {
-            return;
-        }
-
         Entity entity = event.getEntity();
         if (!(entity instanceof EnderDragon) && !(entity instanceof EnderDragonPart)) {
             return;
@@ -850,10 +679,6 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onEnderDragonDamageByEntity(EntityDamageByEntityEvent event) {
-        if (!allowedWorlds.contains(event.getEntity().getWorld().getName())) {
-            return;
-        }
-
         Entity entity = event.getEntity();
         if (!(entity instanceof EnderDragon) && !(entity instanceof ComplexEntityPart)) {
             return;
@@ -938,9 +763,6 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onExplosionPrime(ExplosionPrimeEvent event) {
-        if (!allowedWorlds.contains(event.getEntity().getWorld().getName())) {
-            return;
-        }
         if (event.getEntityType() == EntityType.CREEPER) {
             if (event.getEntity().hasMetadata("giant_creeper")) {
                 event.setRadius(event.getRadius() * 30);
@@ -969,21 +791,7 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onVehicleCreate(VehicleCreateEvent event) {
-        if (event.getVehicle() instanceof Minecart) {
-            Minecart minecart = (Minecart) event.getVehicle();
-            if (allowedWorlds.contains(minecart.getWorld().getName())) {
-                minecart.setMaxSpeed(4.0);
-            }
-        }
-    }
-
-    @EventHandler
     public void onLootGenerate(org.bukkit.event.world.LootGenerateEvent event) {
-        if (!allowedWorlds.contains(event.getWorld().getName())) {
-            return;
-        }
-
         // Only apply to containers (chests, etc.), not mobs
         if (event.getInventoryHolder() == null) {
             return;
