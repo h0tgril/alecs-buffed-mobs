@@ -855,18 +855,3 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
         entity.getEquipment().setBootsDropChance(0.0f);
     }
 
-    private void makeGiantCreeper(LivingEntity entity) {
-        if (entity.getAttribute(Attribute.valueOf("GENERIC_MAX_HEALTH")) != null) {
-            entity.getAttribute(Attribute.valueOf("GENERIC_MAX_HEALTH")).setBaseValue(200.0);
-            entity.setHealth(200.0);
-        }
-        if (entity.getAttribute(Attribute.valueOf("GENERIC_SCALE")) != null) {
-            entity.getAttribute(Attribute.valueOf("GENERIC_SCALE")).setBaseValue(4.0);
-        }
-        if (entity.getAttribute(Attribute.valueOf("GENERIC_MOVEMENT_SPEED")) != null) {
-            double currentSpeed = entity.getAttribute(Attribute.valueOf("GENERIC_MOVEMENT_SPEED")).getBaseValue();
-            entity.getAttribute(Attribute.valueOf("GENERIC_MOVEMENT_SPEED")).setBaseValue(currentSpeed * 1.2);
-        }
-        entity.setMetadata("giant_creeper", new org.bukkit.metadata.FixedMetadataValue(this, true));
-    }
-}

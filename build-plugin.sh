@@ -3,7 +3,7 @@
 set -e
 
 # --- Configuration ---
-PLUGIN_NAME="NoZombieKnockback"
+PLUGIN_NAME="AlecsOpMobs"
 SOURCE_DIR="src/main/java"
 RESOURCES_DIR="src/main/resources"
 BUILD_DIR="build"
