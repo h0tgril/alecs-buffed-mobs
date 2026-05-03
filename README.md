@@ -6,13 +6,16 @@ A Bukkit/Spigot plugin that significantly buffs various mobs and player mechanic
 
 ### Player Changes
 *   **Old sword cooldown:** Removes the sword swing delay introduced in the infamous "combat update."
-*   **TNT buff:** TNT is twice as powerful.
+*   **TNT buff:** TNT is twice as powerful to make it fair that creepers are too.
 
 ### Mob Buffs
 
-The largest change is that most common mobs have 4x follow range / line of sight, which means typically you'll end up aggro'ing way more of them at once when out at night or inside a cave.
+The largest overall change is that most common mobs have 4x follow range / line of sight, which means typically you'll end up aggro'ing way more of them at once when out at night or inside a cave.
 
 #### Zombies & Villager Zombies
+
+Zombies can corner you now.
+
 *   **No Knockback:** Zombies no longer take knockback when hit.
 *   **Enhanced Follow Range:** Zombies have 4x their normal follow range.
 *   **Giant Zombies:** Very rare chance (0.1%) to spawn a Giant Zombie with 200 HP, increased size, speed, and a Knockback VIII Stone Axe.
@@ -21,18 +24,31 @@ The largest change is that most common mobs have 4x follow range / line of sight
 *   **Double Explosion:** Default creepers have 2x explosion radius and set fire.
 
 #### Skeletons & Strays
+
+These now try to take potshots at you from very far away.
+
 *   **Fast Arrows:** Arrows fired by skeletons and strays have 2x velocity.
 *   **Enhanced Follow Range:** 4x normal follow range.
 
+#### Spiders
+*   **Speed:** Spiders can outrun players, like how it was in 1.7-beta before sprinting existed. Their haphazard pathing also makes them very hard to hit with arrows this way.
+*   **Swimming:** Dolphin's Grace makes them faster on water too, but their pathing makes them act more like the "sceeters" in Super Mario Sunshine.
+
 #### Wither
+
+This boss now spawns minions to cover its deficiencies.
+
 *   **Weather Effects:** Spawning a Wither triggers a thunderstorm.
 *   **Boss Music:** Plays the 'Ward' music disc locally to all nearby players while the Wither is alive.
 *   **Arrow Counterattack:** When reaching 50% HP, the Wither releases a volley of arrows (doubled for every arrow hit it took) at nearby players.
 *   **Lightning Strikes:** 30% chance for Wither Skulls to strike lightning upon impact.
 *   **Mob Summoning:** 1% chance for skulls to spawn 10 angry Bees or 10 Silverfish nearby.
-*   **Defensive Explosion:** Triggers a power 12 explosion if it takes damage while surrounded by too many blocks.
+*   **Defensive Explosion:** Triggers a power 12 explosion if it takes damage while surrounded by too many blocks. This is to prevent you from trapping it in a cave and letting iron golems do the work.
 
 #### Ender Dragon
+
+This boss used to be weak to swords when perched, but now you have to face it directly if you want it not to teleport away, which comes with serious risks.
+
 *   **Regeneration:** Regenerates 2 HP every 10 seconds.
 *   **Evasive Maneuvers:** Teleports to a new location if a player attacks it from behind (not facing the dragon).
 *   **Enhanced Breath:** Dragon fireballs and breath clouds deal 2x damage and apply Poison II and Fire for 5 seconds.
@@ -40,16 +56,19 @@ The largest change is that most common mobs have 4x follow range / line of sight
 *   **Projectile Resistance:** Takes 50% less damage from projectiles and 75% less damage from explosions.
 
 #### Ghasts
-*   **High Health:** 5x base HP.
-*   **Mega Fireballs:** Fireballs have 4x explosion yield.
+
+These used to die from just one arrow and never cause meaningful damage. Since they spawn so rarely, we figured they should be a real threat.
+
+*   **High Health:** 5x base HP. Unless it's close enough to stab, it'll take several bow shots to kill.
+*   **Mega Fireballs:** Fireballs have 4x explosion yield. It'll pretty much one-shot you unless you have blast protection or full prot 4.
 
 #### Endermen
-*   **Strength:** Permanent Strength II effect.
+*   **Strength:** Permanent Strength II effect. We made it so strong because it's optional to fight anyway.
 *   **Invisibility:** 25% chance to spawn invisible.
 
 #### Raiders
 *   **Enhanced Follow Range:** 4x normal follow range.
-*   **Pillager Gear:** Spawn with Quick Charge III and Piercing IV crossbows and Resistance I.
+*   **Pillager Gear:** Spawn with Quick Charge III and Piercing IV crossbows and Resistance I. Yes you can farm the bows, but they're not very good anyway.
 *   **Vindicators & Ravagers:** Permanent Regeneration and Resistance effects.
 *   **Evokers:** Permanent Resistance III.
 
@@ -70,7 +89,7 @@ The largest change is that most common mobs have 4x follow range / line of sight
 *   **Snow Golems:** If on fire, their snowballs set targets on fire for 5 seconds.
 
 ### World & Mechanics
-*   **Enhanced Loot:** 10% chance for gear or books in loot chests to have Level VI enchantments.
+*   **Enhanced Loot:** 10% chance for gear or books in loot chests to have Level VI enchantments. This gives exploration a purpose if you've already built farms to attain the normal max level enchants.
 *   **Fire Persistence:** Fire has a 90% chance to not extinguish naturally.
 *   **Bed Explosions:** Bed explosions in the Nether/End have 2x power (10.0 yield).
 
