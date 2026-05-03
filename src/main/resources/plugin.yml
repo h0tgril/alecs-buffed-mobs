@@ -4,3 +4,7 @@ main: com.example.nozombieknockback.NoZombieKnockback
 api-version: 1.21
 author: hot_gril
 description: Buffs mobs in various ways.
+commands:
+  abm:
+    description: Playtesting command for AlecsOpMobs.
+    usage: /abm <giant|siege|knight>

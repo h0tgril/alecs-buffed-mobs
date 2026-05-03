@@ -25,6 +25,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -37,18 +39,30 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Random;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.function.Consumer;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 
 public class NoZombieKnockback extends JavaPlugin implements Listener {
 
     private final Map<java.util.UUID, Integer> witherArrowCounts = new HashMap<>();
     private final Set<java.util.UUID> witherReleasedArrows = new HashSet<>();
     private final Map<java.util.UUID, BukkitTask> witherMusicTasks = new HashMap<>();
+    
+    // Siege weight system
+    private final NavigableMap<Integer, Consumer<Location>> siegeWeights = new TreeMap<>();
+    private int totalSiegeWeight = 0;
+    private final Random random = new Random();
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         getServer().getPluginManager().registerEvents(this, this);
+        setupSiegeWeights();
 
         // Ender dragon regenerates 1 heart (2 HP) every 10 seconds (200 ticks)
         getServer().getScheduler().runTaskTimer(this, () -> {
@@ -62,6 +76,146 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
                 }
             }
         }, 200L, 200L);
+    }
+
+    private void setupSiegeWeights() {
+        addSiegeMob(30, loc -> loc.getWorld().spawnEntity(loc, EntityType.ZOMBIE));
+        addSiegeMob(20, loc -> loc.getWorld().spawnEntity(loc, EntityType.SKELETON));
+        addSiegeMob(20, loc -> loc.getWorld().spawnEntity(loc, EntityType.SPIDER));
+        addSiegeMob(5,  loc -> {
+            Spider spider = (Spider) loc.getWorld().spawnEntity(loc, EntityType.SPIDER);
+            Skeleton skeleton = (Skeleton) loc.getWorld().spawnEntity(loc, EntityType.SKELETON);
+            spider.addPassenger(skeleton);
+        });
+        addSiegeMob(5,  loc -> loc.getWorld().spawnEntity(loc, EntityType.WITCH));
+        addSiegeMob(5,  loc -> loc.getWorld().spawnEntity(loc, EntityType.ENDERMAN));
+        addSiegeMob(10, loc -> loc.getWorld().spawnEntity(loc, EntityType.PILLAGER));
+        addSiegeMob(1,  loc -> loc.getWorld().spawnEntity(loc, EntityType.EVOKER));
+        addSiegeMob(2,  loc -> loc.getWorld().spawnEntity(loc, EntityType.VINDICATOR));
+        addSiegeMob(5,  loc -> loc.getWorld().spawnEntity(loc, EntityType.BLAZE));
+        addSiegeMob(1,  loc -> loc.getWorld().spawnEntity(loc.clone().add(0, 10, 0), EntityType.GHAST));
+        addSiegeMob(5,  loc -> loc.getWorld().spawnEntity(loc, EntityType.ZOMBIFIED_PIGLIN));
+    }
+
+    private void addSiegeMob(int weight, Consumer<Location> action) {
+        totalSiegeWeight += weight;
+        siegeWeights.put(totalSiegeWeight, action);
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (command.getName().equalsIgnoreCase("abm")) {
+            if (!sender.isOp()) {
+                sender.sendMessage("§cOnly OPs can use this command.");
+                return true;
+            }
+
+            if (args.length > 0) {
+                if (args[0].equalsIgnoreCase("giant")) {
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage("This command can only be used by players.");
+                        return true;
+                    }
+                    Player player = (Player) sender;
+                    Zombie zombie = (Zombie) player.getWorld().spawnEntity(player.getLocation(), EntityType.ZOMBIE);
+                    makeGiantZombie(zombie);
+                    sender.sendMessage("§aSpawned a Giant Zombie for playtesting!");
+                    return true;
+                }
+
+                if (args[0].equalsIgnoreCase("siege")) {
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage("This command can only be used by players.");
+                        return true;
+                    }
+                    Player player = (Player) sender;
+                    int level = 100;
+                    if (args.length > 1) {
+                        try {
+                            level = Integer.parseInt(args[1]);
+                        } catch (NumberFormatException e) {
+                            sender.sendMessage("§cInvalid level. Defaulting to 100.");
+                        }
+                    }
+
+                    spawnSiege(player, level);
+                    sender.sendMessage("§aA siege of §e" + level + " §amobs has begun around you!");
+                    return true;
+                }
+
+                if (args[0].equalsIgnoreCase("knight")) {
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage("This command can only be used by players.");
+                        return true;
+                    }
+                    Player player = (Player) sender;
+                    spawnKnight(player.getLocation());
+                    sender.sendMessage("§aSpawned an Undead Knight!");
+                    return true;
+                }
+            }
+            sender.sendMessage("§cUsage: /abm <giant|siege [level]|knight>");
+            return true;
+        }
+        return false;
+    }
+
+    private void spawnKnight(Location loc) {
+        World world = loc.getWorld();
+        if (world == null) return;
+
+        ZombieHorse horse = (ZombieHorse) world.spawnEntity(loc, EntityType.ZOMBIE_HORSE);
+        horse.setTamed(true);
+        // Stats for the horse are handled by our CreatureSpawnEvent logic already, 
+        // but we ensure it has some good baseline here if needed.
+
+        Zombie zombie = (Zombie) world.spawnEntity(loc, EntityType.ZOMBIE);
+        horse.addPassenger(zombie);
+
+        EntityEquipment equipment = zombie.getEquipment();
+        if (equipment != null) {
+            ItemStack helmet = new ItemStack(Material.CHAINMAIL_HELMET);
+            ItemStack chest = new ItemStack(Material.CHAINMAIL_CHESTPLATE);
+            ItemStack legs = new ItemStack(Material.CHAINMAIL_LEGGINGS);
+            ItemStack boots = new ItemStack(Material.CHAINMAIL_BOOTS);
+            ItemStack spear = new ItemStack(Material.IRON_SPEAR);
+
+            helmet.addEnchantment(Enchantment.PROTECTION, 4);
+            chest.addEnchantment(Enchantment.PROTECTION, 4);
+            legs.addEnchantment(Enchantment.PROTECTION, 4);
+            boots.addEnchantment(Enchantment.PROTECTION, 4);
+            spear.addUnsafeEnchantment(Enchantment.KNOCKBACK, 2);
+
+            equipment.setHelmet(helmet);
+            equipment.setChestplate(chest);
+            equipment.setLeggings(legs);
+            equipment.setBoots(boots);
+            equipment.setItemInMainHand(spear);
+
+            equipment.setHelmetDropChance(0.1f);
+            equipment.setChestplateDropChance(0.1f);
+            equipment.setLeggingsDropChance(0.1f);
+            equipment.setBootsDropChance(0.1f);
+            equipment.setItemInMainHandDropChance(0.2f);
+        }
+    }
+
+    private void spawnSiege(Player player, int level) {
+        Location center = player.getLocation();
+        World world = player.getWorld();
+
+        for (int i = 0; i < level; i++) {
+            double angle = (2 * Math.PI / level) * i;
+            // Radius 50 with some slight random variation
+            double radius = 48 + random.nextDouble() * 4; 
+            double x = center.getX() + radius * Math.cos(angle);
+            double z = center.getZ() + radius * Math.sin(angle);
+            int y = world.getHighestBlockYAt((int) x, (int) z) + 1;
+            Location spawnLoc = new Location(world, x, y, z);
+
+            int roll = random.nextInt(totalSiegeWeight);
+            siegeWeights.higherEntry(roll).getValue().accept(spawnLoc);
+        }
     }
 
     private void updateAttackSpeed(Player player) {
@@ -764,11 +918,7 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
     @EventHandler
     public void onExplosionPrime(ExplosionPrimeEvent event) {
         if (event.getEntityType() == EntityType.CREEPER) {
-            if (event.getEntity().hasMetadata("giant_creeper")) {
-                event.setRadius(event.getRadius() * 30);
-            } else {
-                event.setRadius(event.getRadius() * 2);
-            }
+            event.setRadius(event.getRadius() * 2);
             event.setFire(true);
         } else if (event.getEntityType() == EntityType.TNT || event.getEntityType() == EntityType.TNT_MINECART) {
             event.setRadius(event.getRadius() * 2);
@@ -843,9 +993,14 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
         }
         entity.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, Integer.MAX_VALUE, 9));
 
-        ItemStack spear = new ItemStack(Material.STONE_AXE);
-        spear.addUnsafeEnchantment(Enchantment.KNOCKBACK, 8);
-        entity.getEquipment().setItemInMainHand(spear);
+        ItemStack axe = new ItemStack(Material.STONE_AXE);
+        ItemMeta meta = axe.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName("§rGiant's Axe");
+            axe.setItemMeta(meta);
+        }
+        axe.addUnsafeEnchantment(Enchantment.KNOCKBACK, 8);
+        entity.getEquipment().setItemInMainHand(axe);
         entity.getEquipment().setItemInMainHandDropChance(1.0f);
         entity.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
         entity.getEquipment().setLeggings(new ItemStack(Material.LEATHER_LEGGINGS));
@@ -854,4 +1009,5 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
         entity.getEquipment().setLeggingsDropChance(0.0f);
         entity.getEquipment().setBootsDropChance(0.0f);
     }
+}
 
