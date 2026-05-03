@@ -97,7 +97,7 @@ These used to die from just one arrow and never cause meaningful damage. Since t
 
 ## Building the Plugin
 
-The project includes a portable build script (`build-plugin.sh`) designed to work on any system with a JDK installed.
+The project includes a portable build script (`build-plugin.sh`) designed to work on any system with a JDK installed. You don't need Maven, Eclipse, IntelliJ, or whatever heavy stuff most tutorials will suggest.
 
 ### Prerequisites
 *   **Java Development Kit (JDK):** Version 21 or higher.
@@ -117,7 +117,3 @@ The project includes a portable build script (`build-plugin.sh`) designed to wor
 4.  **Output:**
     *   The compiled plugin will be located at `dist/AlecsOpMobs.jar`.
 
-### How the Script Works
-*   **Portable Classpath:** Instead of relying on local paths or Maven repositories, it uses `lib/*` to include any JARs you place in the `lib/` folder.
-*   **Standard Utilities:** It uses standard `javac` and `jar` commands to ensure it runs anywhere without needing complex build tools like Maven or Gradle.
-*   **Resource Handling:** Automatically bundles `plugin.yml` and `config.yml` into the final JAR.
