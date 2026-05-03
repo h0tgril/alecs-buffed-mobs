@@ -846,7 +846,7 @@ public class NoZombieKnockback extends JavaPlugin implements Listener {
         ItemStack spear = new ItemStack(Material.STONE_AXE);
         spear.addUnsafeEnchantment(Enchantment.KNOCKBACK, 8);
         entity.getEquipment().setItemInMainHand(spear);
-        entity.getEquipment().setItemInMainHandDropChance(0.0f);
+        entity.getEquipment().setItemInMainHandDropChance(1.0f);
         entity.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
         entity.getEquipment().setLeggings(new ItemStack(Material.LEATHER_LEGGINGS));
         entity.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));

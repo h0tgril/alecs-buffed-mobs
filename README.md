@@ -18,7 +18,7 @@ Zombies can corner you now.
 
 *   **No Knockback:** Zombies no longer take knockback when hit.
 *   **Enhanced Follow Range:** Zombies have 4x their normal follow range.
-*   **Giant Zombies:** Very rare chance (0.1%) to spawn a Giant Zombie with 200 HP, increased size, speed, and a Knockback VIII Stone Axe.
+*   **Giant Zombies:** Very rare chance (0.1%) to spawn a Giant Zombie with 200 HP, increased size, speed, and a Knockback VIII Stone Axe that it will always drop upon death.
 
 #### Creepers
 *   **Double Explosion:** Default creepers have 2x explosion radius and set fire.
@@ -70,7 +70,7 @@ These used to die from just one arrow and never cause meaningful damage. Since t
 *   **Enhanced Follow Range:** 4x normal follow range.
 *   **Pillager Gear:** Spawn with Quick Charge III and Piercing IV crossbows and Resistance I. Yes you can farm the bows, but they're not very good anyway.
 *   **Vindicators & Ravagers:** Permanent Regeneration and Resistance effects.
-*   **Evokers:** Permanent Resistance III.
+*   **Evokers:** Permanent Resistance III. They'll tank like 10 hits from a sharpness V netherrite sword.
 
 #### Guardians & Elder Guardians
 *   **Sea Buffs:** Permanent Speed II, Regeneration, Resistance I, and Strength I.
@@ -117,5 +117,16 @@ The project includes a portable build script (`build-plugin.sh`) designed to wor
 4.  **Output:**
     *   The compiled plugin will be located at `dist/AlecsOpMobs.jar`.
 
-In case you've noticed all this code is AI slop... I do know how to code, and did proofread and playtest everything here, was just too lazy to keep looking up the right imports and stuff.
+In case you've noticed all this code is AI slop... I do know how to code, and did proofread every loc, was just too lazy to keep looking up the right imports and stuff. The README is half handwritten, but I let the AI note the exact stat changes.
+
+---
+
+## Todos
+
+1.  Rework the Warden. We haven't found one in SMP yet to really playtest it, only tested in creative.
+1.  Adjust wolf buffs as needed based on playtesting.
+1.  Consider buffing vindicators more. They're ok in raids, but we haven't tried a mansion yet.
+1.  Guardians need more playtesting and may be adjusted.
+1.  Find ways to make endgame exploration more interesting, besides just the loot adjustment.
+1.  Need to revisit the sword fix, not sure if it's working the same as pre-1.9.
 
