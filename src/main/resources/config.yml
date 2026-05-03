@@ -1,0 +1,4 @@
+# Configuration for NoZombieKnockback plugin
+whitelist:
+  enabled: true
+  kick-message: "You are not on the whitelist."
