@@ -1,6 +1,6 @@
 # AlecsOpMobs
 
-A Bukkit/Spigot plugin that significantly buffs various mobs and player mechanics to make Minecraft more challenging and interesting.
+A Bukkit/Spigot plugin that significantly buffs various mobs and player mechanics to make Minecraft more challenging and interesting. Video: https://youtu.be/DTBZKJhPKgA?si=cibeox9m7guzayYe
 
 ## Features
 
